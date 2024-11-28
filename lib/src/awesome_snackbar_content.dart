@@ -207,6 +207,8 @@ class AwesomeSnackbarContent extends StatelessWidget {
                           fontSize: size.height * 0.016,
                           color: Colors.white,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis, 
                   ),
                 ),
                 SizedBox(
