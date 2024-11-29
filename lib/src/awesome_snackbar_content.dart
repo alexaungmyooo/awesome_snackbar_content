@@ -47,18 +47,13 @@ class AwesomeSnackbarContent extends StatelessWidget {
     required this.contentType,
     this.inMaterialBanner = false,
   }) : super(key: key);
-
+  
   @override
   Widget build(BuildContext context) {
     bool isRTL = Directionality.of(context) == TextDirection.rtl;
 
     final size = MediaQuery.of(context).size;
 
-    // screen dimensions
-    bool isMobile = size.width <= 768;
-    bool isTablet = size.width > 768 && size.width <= 992;
-
-    /// for reflecting different color shades in the SnackBar
     final hsl = HSLColor.fromColor(color ?? contentType.color!);
     final hslDark = hsl.withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0));
 
@@ -66,26 +61,30 @@ class AwesomeSnackbarContent extends StatelessWidget {
     double leftSpace = size.width * 0.12;
     double rightSpace = size.width * 0.12;
 
-    if (isMobile) {
+    if (size.width <= 768) {
+      // Mobile
       horizontalPadding = size.width * 0.01;
-    } else if (isTablet) {
+    } else if (size.width > 768 && size.width <= 992) {
+      // Tablet
       leftSpace = size.width * 0.05;
       horizontalPadding = size.width * 0.2;
     } else {
+      // Desktop
       leftSpace = size.width * 0.05;
       horizontalPadding = size.width * 0.3;
     }
 
     return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
+      margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      decoration: BoxDecoration(
+        color: color ?? contentType.color,
+        borderRadius: BorderRadius.circular(20),
       ),
-      height: size.height * 0.150,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
         children: [
-          /// background container
+          /// Background container
           Container(
             width: size.width,
             decoration: BoxDecoration(
@@ -113,18 +112,18 @@ class AwesomeSnackbarContent extends StatelessWidget {
             ),
           ),
 
-          // Bubble Icon
+          /// Bubble Icon
           Positioned(
             top: -size.height * 0.015,
             left: !isRTL
                 ? leftSpace -
                     8 -
-                    (isMobile ? size.width * 0.075 : size.width * 0.035)
+                    (size.width * (size.width <= 768 ? 0.075 : 0.035))
                 : null,
             right: isRTL
                 ? rightSpace -
                     8 -
-                    (isMobile ? size.width * 0.075 : size.width * 0.035)
+                    (size.width * (size.width <= 768 ? 0.075 : 0.035))
                 : null,
             child: Stack(
               alignment: Alignment.center,
@@ -143,35 +142,32 @@ class AwesomeSnackbarContent extends StatelessWidget {
                     height: size.height * 0.022,
                     package: 'awesome_snackbar_content',
                   ),
-                )
+                ),
               ],
             ),
           ),
 
-          /// content
+          /// Content
           Positioned.fill(
             left: isRTL ? size.width * 0.03 : leftSpace,
             right: isRTL ? rightSpace : size.width * 0.03,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.min, // Shrink-wrap the content
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: size.height * 0.01,
-                ),
+                SizedBox(height: size.height * 0.01),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    /// `title` parameter
+                    /// Title
                     Expanded(
                       flex: 3,
                       child: Text(
                         title,
                         style: titleTextStyle ??
                             TextStyle(
-                              fontSize: (!isMobile
-                                  ? size.height * 0.03
-                                  : size.height * 0.025),
+                              fontSize: size.height *
+                                  (size.width <= 768 ? 0.025 : 0.03),
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -194,29 +190,23 @@ class AwesomeSnackbarContent extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: size.height * 0.005,
-                ),
+                SizedBox(height: size.height * 0.005),
 
-                /// `message` body text parameter
-                Expanded(
-                  child: Text(
-                    message,
-                    style: messageTextStyle ??
-                        TextStyle(
-                          fontSize: size.height * 0.016,
-                          color: Colors.white,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                /// Message
+                Text(
+                  message,
+                  style: messageTextStyle ??
+                      TextStyle(
+                        fontSize: size.height * 0.016,
+                        color: Colors.white,
+                      ),
+                  maxLines: null, // Allow unlimited lines
+                  overflow: TextOverflow.visible, // Avoid ellipsis
                 ),
-                SizedBox(
-                  height: size.height * 0.015,
-                ),
+                SizedBox(height: size.height * 0.015),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -226,20 +216,12 @@ class AwesomeSnackbarContent extends StatelessWidget {
   String assetSVG(ContentType contentType) {
     switch (contentType) {
       case ContentType.failure:
-
-        /// failure will show `CROSS`
         return AssetsPath.failure;
       case ContentType.success:
-
-        /// success will show `CHECK`
         return AssetsPath.success;
       case ContentType.warning:
-
-        /// warning will show `EXCLAMATION`
         return AssetsPath.warning;
       case ContentType.help:
-
-        /// help will show `QUESTION MARK`
         return AssetsPath.help;
       default:
         return AssetsPath.failure;
