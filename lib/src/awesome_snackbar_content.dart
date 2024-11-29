@@ -80,7 +80,7 @@ class AwesomeSnackbarContent extends StatelessWidget {
       margin: EdgeInsets.symmetric(
         horizontal: horizontalPadding,
       ),
-      height: size.height * 0.2,
+      height: size.height * 0.150,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
