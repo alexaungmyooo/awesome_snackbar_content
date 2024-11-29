@@ -5,36 +5,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui' as ui;
 
 class AwesomeSnackbarContent extends StatelessWidget {
-  /// `IMPORTANT NOTE` for SnackBar properties before putting this in `content`
-  /// backgroundColor: Colors.transparent
-  /// behavior: SnackBarBehavior.floating
-  /// elevation: 0.0
-
-  /// /// `IMPORTANT NOTE` for MaterialBanner properties before putting this in `content`
-  /// backgroundColor: Colors.transparent
-  /// forceActionsBelow: true,
-  /// elevation: 0.0
-  /// [inMaterialBanner = true]
-
-  /// title is the header String that will show on top
   final String title;
-
-  /// message String is the body message which shows only 2 lines at max
   final String message;
-
-  /// `optional` color of the SnackBar/MaterialBanner body
   final Color? color;
-
-  /// contentType will reflect the overall theme of SnackBar/MaterialBanner: failure, success, help, warning
   final ContentType contentType;
-
-  /// if you want to use this in materialBanner
   final bool inMaterialBanner;
-
-  /// if you want to customize the font style of the title
   final TextStyle? titleTextStyle;
-
-  /// if you want to customize the font style of the message
   final TextStyle? messageTextStyle;
 
   const AwesomeSnackbarContent({
@@ -47,38 +23,38 @@ class AwesomeSnackbarContent extends StatelessWidget {
     required this.contentType,
     this.inMaterialBanner = false,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     bool isRTL = Directionality.of(context) == TextDirection.rtl;
 
     final size = MediaQuery.of(context).size;
 
+    // screen dimensions
+    bool isMobile = size.width <= 768;
+    bool isTablet = size.width > 768 && size.width <= 992;
+
+    /// for reflecting different color shades in the SnackBar
     final hsl = HSLColor.fromColor(color ?? contentType.color!);
     final hslDark = hsl.withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0));
 
     double horizontalPadding = 0.0;
-    double leftSpace = size.width * 0.12;
+    double leftSpace = size.width * 0.14;
     double rightSpace = size.width * 0.12;
 
-    if (size.width <= 768) {
-      // Mobile
+    if (isMobile) {
       horizontalPadding = size.width * 0.01;
-    } else if (size.width > 768 && size.width <= 992) {
-      // Tablet
+    } else if (isTablet) {
       leftSpace = size.width * 0.05;
       horizontalPadding = size.width * 0.2;
     } else {
-      // Desktop
       leftSpace = size.width * 0.05;
       horizontalPadding = size.width * 0.3;
     }
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
-      decoration: BoxDecoration(
-        color: color ?? contentType.color,
-        borderRadius: BorderRadius.circular(20),
+      margin: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -90,6 +66,75 @@ class AwesomeSnackbarContent extends StatelessWidget {
             decoration: BoxDecoration(
               color: color ?? contentType.color,
               borderRadius: BorderRadius.circular(20),
+            ),
+            padding: EdgeInsets.fromLTRB(
+              isRTL ? size.width * 0.03 : leftSpace, // Left padding
+              0.0, // Top padding
+              isRTL ? rightSpace : size.width * 0.04, // Right padding
+              0.0, // Bottom padding
+            ),
+            child: Column(
+              mainAxisSize:
+                  MainAxisSize.min, // Adjust dynamically based on content
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: size.height * 0.01,
+                ),
+
+                /// Title
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: titleTextStyle ??
+                            TextStyle(
+                              fontSize: (!isMobile
+                                  ? size.height * 0.03
+                                  : size.height * 0.025),
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        if (inMaterialBanner) {
+                          ScaffoldMessenger.of(context)
+                              .hideCurrentMaterialBanner();
+                          return;
+                        }
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      },
+                      icon: Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: size.height * 0.022,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: size.height * 0.005,
+                ),
+
+                /// Message
+                Text(
+                  message,
+                  style: messageTextStyle ??
+                      TextStyle(
+                        fontSize: size.height * 0.016,
+                        color: Colors.white,
+                      ),
+                  maxLines: null, // Allow unlimited lines
+                  overflow: TextOverflow.visible, // Show all content
+                ),
+                SizedBox(
+                  height: size.height * 0.015,
+                ),
+              ],
             ),
           ),
 
@@ -118,12 +163,12 @@ class AwesomeSnackbarContent extends StatelessWidget {
             left: !isRTL
                 ? leftSpace -
                     8 -
-                    (size.width * (size.width <= 768 ? 0.075 : 0.035))
+                    (isMobile ? size.width * 0.075 : size.width * 0.035)
                 : null,
             right: isRTL
                 ? rightSpace -
                     8 -
-                    (size.width * (size.width <= 768 ? 0.075 : 0.035))
+                    (isMobile ? size.width * 0.075 : size.width * 0.035)
                 : null,
             child: Stack(
               alignment: Alignment.center,
@@ -142,68 +187,7 @@ class AwesomeSnackbarContent extends StatelessWidget {
                     height: size.height * 0.022,
                     package: 'awesome_snackbar_content',
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          /// Content
-          Positioned.fill(
-            left: isRTL ? size.width * 0.03 : leftSpace,
-            right: isRTL ? rightSpace : size.width * 0.03,
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Shrink-wrap the content
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: size.height * 0.01),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    /// Title
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        title,
-                        style: titleTextStyle ??
-                            TextStyle(
-                              fontSize: size.height *
-                                  (size.width <= 768 ? 0.025 : 0.03),
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        if (inMaterialBanner) {
-                          ScaffoldMessenger.of(context)
-                              .hideCurrentMaterialBanner();
-                          return;
-                        }
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      },
-                      icon: Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: size.height * 0.022,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: size.height * 0.005),
-
-                /// Message
-                Text(
-                  message,
-                  style: messageTextStyle ??
-                      TextStyle(
-                        fontSize: size.height * 0.016,
-                        color: Colors.white,
-                      ),
-                  maxLines: null, // Allow unlimited lines
-                  overflow: TextOverflow.visible, // Avoid ellipsis
-                ),
-                SizedBox(height: size.height * 0.015),
+                )
               ],
             ),
           ),
